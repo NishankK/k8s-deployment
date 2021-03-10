@@ -2,7 +2,7 @@ pipeline {
 
   environment {
     registry = "chetangautamm/repo"
-    registryCredential = '58881f31-29bb-48a8-9da9-fc254654146d' 
+    registryCredential = 'dockerhub' 
     dockerImage = ""
   }
 
@@ -12,20 +12,20 @@ pipeline {
 
     stage('Checkout Source Code') {
       steps {
-        git 'https://github.com/chetangautamm/k8s-deployment.git'
+        git 'https://github.com/NishankK/k8s-deployment.git'
       }
     }
     
     
     stage('Deploying Opensips CNF') {
       steps {
-        sshagent(['k8suser']) {
-          sh "scp -o StrictHostKeyChecking=no -q opensips.yaml k8suser@52.172.221.4:/home/k8suser"
+        sshagent(['k8s-host1-local']) {
+          sh "scp -o StrictHostKeyChecking=no -q opensips.yaml k8s-host1@192.168.1.207:/home/k8s-host1"
           script {
             try {
-              sh "ssh k8suser@52.172.221.4 kubectl apply -f opensips.yaml"
+              sh "ssh k8s-host1@192.168.1.207 kubectl apply -f opensips.yaml"
             }catch(error){
-              sh "ssh k8suser@52.172.221.4 kubectl apply -f opensips.yaml"
+              sh "ssh k8s-host1@192.168.1.207 kubectl apply -f opensips.yaml"
             } 
           }
         }              
@@ -34,11 +34,11 @@ pipeline {
     stage('Testing Opensips Using SIPp') {
       steps {
         sh "chmod +x configure.sh"
-        sshagent(['k8suser']) {
-          sh "scp -o StrictHostKeyChecking=no -q configure.sh k8suser@52.172.221.4:/home/k8suser"
+        sshagent(['k8s-host1-local']) {
+          sh "scp -o StrictHostKeyChecking=no -q configure.sh k8s-host1@192.168.1.207:/home/k8s-host1"
           script {
             sh "sleep 10"
-            sh "ssh k8suser@52.172.221.4 ./configure.sh"
+            sh "ssh k8s-host1@192.168.1.207 ./configure.sh"
           }
         }              
       }
